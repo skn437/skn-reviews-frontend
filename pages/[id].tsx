@@ -1,5 +1,6 @@
 import client from "@/Apollo/client";
 import { gql } from "@apollo/client";
+import ReactMarkdown from "react-markdown";
 
 const REVIEW_ID = {
   query: gql`
@@ -15,10 +16,14 @@ const REVIEW_ID = {
 
 export const getStaticPaths = async () => {
   const { data } = await client.query(REVIEW_ID);
-  //const params = [...data.reviews.data];
+  /* 
+  //const params = [...data.reviews.data]; 
+  */
   const paths = data.reviews.data.map((param) => {
     return {
-      params: { id: param.id.toString() }
+      params: { 
+        id: param.id.toString()
+      }
     };
   });
 
@@ -28,17 +33,17 @@ export const getStaticPaths = async () => {
   };
 };
 
-export const getStaticProps = async (context) => {
-  const id = context.params.id;
+export const getStaticProps = async (paths) => {
+  const id = paths.params.id;
   const REVIEW = {
     query: gql`
       query getReview($id: ID!) {
         review(id: $id) {
           data {
-            id
             attributes {
               title
               rating
+              body
             }
           }
         }
@@ -55,7 +60,8 @@ export const getStaticProps = async (context) => {
     return {
       props: {
         getReview: data.review
-      }
+      },
+      revalidate: 10
     };
 
   } catch (err) {
@@ -76,8 +82,9 @@ const Details = (props) => {
 
   return (
     <div>
-      <p>Title: {data.attributes.title}</p>
-      <p>Rating: {data.attributes.rating}</p>
+      <p><strong>Title:</strong> {data.attributes.title}</p>
+      <p><strong>Rating:</strong> {data.attributes.rating}</p>
+      <ReactMarkdown>{data.attributes.body}</ReactMarkdown>
     </div>
   );
 };
