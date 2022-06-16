@@ -1,113 +1,116 @@
-import { UserStates } from "@/Recoil/atoms/UserStates";
-import axios from "axios";
+import client from "@/Apollo/client";
+import { gql } from "@apollo/client";
 import { useRecoilState, useResetRecoilState } from "recoil";
+import { UserStates } from "@/Recoil/atoms/UserStates";
 
-const mutate = async (un, em, ps, cf) => {
-  const uri = "http://localhost:1337/graphql";
-
-  const body = {
-    query: `
-      mutation createUser(
-        $username: String!
-        $email: String!
-        $password: String!
-        $confirmed: Boolean
-      ) {
-        createUsersPermissionsUser(
-          data: {
-            username: $username
-            email: $email
-            password: $password
-            confirmed: $confirmed
+const CREATE_USER = gql`
+  mutation createUser(
+    $username: String!
+    $email: String!
+    $password: String!
+    $confirmed: Boolean
+  ) {
+    createUsersPermissionsUser(
+      data: {
+        username: $username
+        email: $email
+        password: $password
+        confirmed: $confirmed
+      }
+    ) {
+        data {
+          attributes {
+            username
+            email
+            confirmed
           }
-        ) {
-            data {
-              attributes {
-                username
-                email
-                confirmed
-              }
-            }
         }
       }
-    `,
-    variables: {
-      username: un,
-      email: em,
-      password: ps,
-      confirmed: cf
-    }
-  };
-  
-  const options = {
-    headers: {
-      "Content-Type": "application/json"
-    }
-  };
-
-  const data = await axios.post(uri, body, options);
-};
+  }
+`;
 
 const create = () => {
   const [states, setStates] = useRecoilState(UserStates);
-  const resetCount = useResetRecoilState(UserStates);
+  const resetStates = useResetRecoilState(UserStates);
 
   return (
     <div>
       <form
-        onSubmit={async (e) => {
+        onSubmit={(e) => {
           e.preventDefault();
-          await mutate(states.username, states.email, states.password, true);
-          resetCount();
+          client
+            .mutate({
+              mutation: CREATE_USER,
+              variables: {
+                username: states.username,
+                email: states.email,
+                password: states.password,
+                confirmed: true
+              }
+            })
+            .then(() => {
+              console.log(`Mutating....`);
+            })
+            .catch((err) => {
+              console.log(`Error: `, err.message);
+            })
+            .finally(() => {
+              console.log(`Process done`);
+            });
+            resetStates();
         }}
       >
+        <h1>Create User</h1>
 
         <label htmlFor="username">Enter Username: </label>
-        <input 
-          className="username"
-          type="text" 
-          value={states.username} 
-          placeholder="enter username..."
+        <input
+          type="text"
+          id="username"
+          placeholder="type username..."
+          value={states.username}
           onChange={(e) => {
             setStates({
               ...states,
               username: e.target.value
             });
           }}
-        ></input><br/>
+        ></input>
+        <br/><br/>
 
         <label htmlFor="email">Enter Email: </label>
-        <input 
-          className="email"
-          type="email" 
-          value={states.email} 
-          placeholder="enter email..."
+        <input
+          type="email"
+          id="email"
+          placeholder="type email..."
+          value={states.email}
           onChange={(e) => {
             setStates({
               ...states,
               email: e.target.value
             });
           }}
-        ></input><br/>
+        ></input>
+        <br/><br/>
 
         <label htmlFor="password">Enter Password: </label>
-        <input 
-          className="password"
-          type="password" 
-          value={states.password} 
-          placeholder="enter password..."
+        <input
+          type="password"
+          id="password"
+          placeholder="type password..."
+          value={states.password}
           onChange={(e) => {
             setStates({
               ...states,
               password: e.target.value
             });
           }}
-        ></input><br/>
+        ></input>
+        <br/><br/>
 
-        <button>Submit</button>
+        <button>Create User</button>
       </form>
     </div>
   );
-};
+}
 
 export default create;

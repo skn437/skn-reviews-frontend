@@ -134,6 +134,15 @@ const update = () => {
           type="number"
           id="rating"
           value={states.attributes.rating}
+          /*onChange={(e) => {
+            setStates({
+              ...states,
+              attributes: {
+                ...states.attributes,
+                rating: e.target.value
+              }
+            });
+          }}*/
         ></input>
         <p>Rating: {states.attributes.rating}</p>
         <br/>
@@ -144,6 +153,15 @@ const update = () => {
           type="text"
           id="body"
           value={states.attributes.body}
+          onChange={(e) => {
+            setStates({
+              ...states,
+              attributes: {
+                ...states.attributes,
+                body: e.target.value
+              }
+            });
+          }}
         ></input>
         <p>Body: {states.attributes.body}</p>
         <br/>
